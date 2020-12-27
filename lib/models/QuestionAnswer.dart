@@ -7,8 +7,9 @@ class QuestionAnswer {
   get answer => _answer;
   get answerStatus => _answerStatus;
 
-  set answerStatus(int status) => _answerStatus = status;
+  set answerStatus(int status) {
+    _answerStatus =  status;
+  }
 
   QuestionAnswer(this._question, this._answer);
-
 }

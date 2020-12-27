@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:redong_grammar_app/models/QuestionAnswer.dart';
+import 'package:redong_grammar_app/models/QuestionAnswerModel.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:strings/strings.dart';
 
@@ -22,7 +24,10 @@ class _ExercisePageState extends State<ExercisePage> {
   String _questionType = "";
   String _instruction = "";
   List<QuestionAnswer> _questionList;
-  List<TextEditingController> _userAnswerList;
+  List<List<TextEditingController>> _userAnswerList;
+  List<TextEditingController> _answer;
+  TextEditingController _controller;
+  int _count;
 
   @override
   void initState() {
@@ -33,14 +38,18 @@ class _ExercisePageState extends State<ExercisePage> {
   @override
   void dispose() {
     // TODO: implement dispose
-    _userAnswerList.forEach((element) {
-      element.dispose();
+    _userAnswerList.forEach((list) {
+      list.forEach((controller2) {
+        controller2.dispose();
+      });
     });
+    // _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    print("rebuild all");
     return FutureBuilder(
       future: load(),
       builder: (context, snapshot) {
@@ -84,20 +93,39 @@ class _ExercisePageState extends State<ExercisePage> {
                                 children: [
                                   Expanded(
                                     flex: 6,
-                                    child: _buildSimpleQuestion(
-                                        index + 1, _questionList[index]),
+                                    child: _questionType == "simple-answer"
+                                        ? _buildSimpleQuestion(
+                                            index + 1,
+                                            _questionList[index],
+                                            _userAnswerList[index])
+                                        : Container(
+                                            width: 0,
+                                            height: 0,
+                                          ),
                                   ),
                                   Expanded(
                                     flex: 1,
-                                    child: Center(
-                                      child:
-                                          _questionList[index].answerStatus == 2
-                                              ? Icon(Icons.check)
+                                    child: Consumer<QuestionAnswerModel>(
+                                      builder:
+                                          (context, questionAnswer, child) {
+                                        return Center(
+                                          child: _questionList[index]
+                                                      .answerStatus ==
+                                                  2
+                                              ? Icon(
+                                                  Icons.check,
+                                                  color: Colors.green,
+                                                )
                                               : _questionList[index]
                                                           .answerStatus ==
                                                       3
-                                                  ? Icon(Icons.clear)
+                                                  ? Icon(
+                                                      Icons.clear,
+                                                      color: Colors.red,
+                                                    )
                                                   : null,
+                                        );
+                                      },
                                     ),
                                   ),
                                 ],
@@ -113,7 +141,38 @@ class _ExercisePageState extends State<ExercisePage> {
                         child: Center(
                           child: RaisedButton(
                             child: Text('Submit ${_userAnswerList.length}'),
-                            onPressed: () {},
+                            onPressed: () {
+                              var questionAnswerModel =
+                                  context.read<QuestionAnswerModel>();
+                              for (int i = 0; i < _questionList.length; i++) {
+                                questionAnswerModel.questionAnswer =
+                                    _questionList[i];
+                                questionAnswerModel.setAnswerStatus(
+                                    _userAnswerList[i][0].text);
+                              }
+
+                              // return showDialog(
+                              //   context: context,
+                              //   builder: (BuildContext context) {
+                              //     return AlertDialog(
+                              //       title: Text('Welcome'),
+                              //       content: Text('GeeksforGeeks'),
+                              //       actions: [
+                              //         FlatButton(
+                              //           textColor: Colors.black,
+                              //           onPressed: () {},
+                              //           child: Text('CANCEL'),
+                              //         ),
+                              //         FlatButton(
+                              //           textColor: Colors.black,
+                              //           onPressed: () {},
+                              //           child: Text('ACCEPT'),
+                              //         ),
+                              //       ],
+                              //     );
+                              //   },
+                              // );
+                            },
                           ),
                         ),
                       ),
@@ -130,6 +189,7 @@ class _ExercisePageState extends State<ExercisePage> {
   }
 
   Future<int> load() async {
+    _count = 0;
     var getInstruction = await widget.database.query(
       'InstructionList',
       columns: ['instruction', 'question_type'],
@@ -146,18 +206,53 @@ class _ExercisePageState extends State<ExercisePage> {
       whereArgs: ['${widget.title}', '${widget.exerciseNo}'],
     );
     _questionList = new List();
-    _userAnswerList = new List();
+    _userAnswerList = new List<List<TextEditingController>>();
+    int count = 0;
+
+    // a counter for total answers ('____') for all questions
+    int answerCount = 0;
+
     getQuestions.forEach((element) {
-      _userAnswerList.add(new TextEditingController());
-      _questionList.add(QuestionAnswer(element['question'], element['answer']));
+      List<String> answerList = element['answer'].split(',');
+      context
+          .read<QuestionAnswerModel>()
+          .addCorrectAnswerToList(count, answerList);
+
+      // creating a temporary list to be inserted into addUserAnswerToList() function
+      List<String> a = new List();
+
+      // creating a temporary list to be inserted into _userAnswerList() function
+      List<TextEditingController> b = new List();
+
+      answerList.forEach((answer) {
+        // print(answer);
+        _controller = new TextEditingController();
+        // a = new List();
+        a.add(_controller.text);
+        // b = new List();
+        b.add(_controller);
+        // answerCount++;
+      });
+      _userAnswerList.add(b);
+      context.read<QuestionAnswerModel>().addUserAnswerToList(count, a);
+      _questionList
+          .add(new QuestionAnswer(element['question'], element['answer']));
+      count++;
     });
 
     return 1;
   }
 
-  Text _buildSimpleQuestion(int questionNo, QuestionAnswer question) {
+  Text _buildSimpleQuestion(int questionNo, QuestionAnswer question,
+      List<TextEditingController> controller) {
     double fontSize = 18.0;
+    int count = 0;
     List<String> questionToList = question.question.split(' ');
+    // _answer = new List();
+
+    // questionToList.forEach((element) {
+    //   if (element == "___") _answer.add(new TextEditingController());
+    // });
 
     return Text.rich(
       TextSpan(
@@ -169,6 +264,12 @@ class _ExercisePageState extends State<ExercisePage> {
             if (questionToList[index] == '___' ||
                 questionToList[index] == '___.' ||
                 questionToList[index] == '___,') {
+              // count++;
+
+              if (count < controller.length) {
+                count++;
+              }
+
               return WidgetSpan(
                 alignment: PlaceholderAlignment.baseline,
                 baseline: TextBaseline.alphabetic,
@@ -179,6 +280,7 @@ class _ExercisePageState extends State<ExercisePage> {
                   child: TextField(
                     // maxLength: 15,
                     // maxLengthEnforced: true,
+                    controller: controller[count-1],
                     decoration:
                         InputDecoration.collapsed(hintText: '___________'),
                     style: TextStyle(fontSize: 18),
@@ -207,9 +309,11 @@ class _ExercisePageState extends State<ExercisePage> {
                 text: ' ${questionToList[index]}',
                 style: _questionTextStyle,
               );
-            } else
+            } else {
               return TextSpan(text: "");
+            }
           },
+          // growable: false,
         ),
       ),
     );

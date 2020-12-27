@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:redong_grammar_app/models/QuestionAnswerModel.dart';
 import 'package:redong_grammar_app/pages/exercise_page.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -35,7 +37,7 @@ class _ExerciseListPageState extends State<ExerciseListPage> {
           return ListView.builder(
             itemCount: count,
             itemBuilder: (context, index) {
-              int exerciseNo = index+1;
+              int exerciseNo = index + 1;
               return ListTile(
                 title: Align(
                   child: Text('Exercise $exerciseNo'),
@@ -45,10 +47,13 @@ class _ExerciseListPageState extends State<ExerciseListPage> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => ExercisePage(
-                                title: this.widget.title,
-                                database: this.widget.database,
-                                exerciseNo: exerciseNo,
+                          builder: (context) => ChangeNotifierProvider(
+                                create: (context) => QuestionAnswerModel(),
+                                child: ExercisePage(
+                                  title: this.widget.title,
+                                  database: this.widget.database,
+                                  exerciseNo: exerciseNo,
+                                ),
                               )));
                 },
               );
