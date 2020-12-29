@@ -7,8 +7,10 @@ class QuestionAnswer {
   get questionNo => _questionNo;
   get question => _question;
   get answer => _answer;
+  // ignore: unnecessary_getters_setters
   get answerStatus => _answerStatus;
 
+  // ignore: unnecessary_getters_setters
   set answerStatus(int status) {
     _answerStatus =  status;
   }

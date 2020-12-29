@@ -25,9 +25,6 @@ class _ExercisePageState extends State<ExercisePage> {
   String _instruction = "";
   List<QuestionAnswer> _questionList;
   List<List<TextEditingController>> _userAnswerList;
-  List<TextEditingController> _answer;
-  TextEditingController _controller;
-  int _count;
 
   @override
   void initState() {
@@ -37,13 +34,11 @@ class _ExercisePageState extends State<ExercisePage> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     _userAnswerList.forEach((list) {
       list.forEach((controller2) {
         controller2.dispose();
       });
     });
-    // _controller.dispose();
     super.dispose();
   }
 
@@ -142,11 +137,12 @@ class _ExercisePageState extends State<ExercisePage> {
                           child: RaisedButton(
                             child: Text('Submit ${_userAnswerList.length}'),
                             onPressed: () {
+                              // debugPrint(_userAnswerList[0][0].text);
                               var questionAnswerModel =
                                   context.read<QuestionAnswerModel>();
                               for (int i = 0; i < _questionList.length; i++) {
                                 questionAnswerModel.checkAnswers(
-                                    _questionList[i]);
+                                    _questionList[i], _userAnswerList[i]);
                               }
                             },
                           ),
@@ -165,7 +161,6 @@ class _ExercisePageState extends State<ExercisePage> {
   }
 
   Future<int> load() async {
-    _count = 0;
     var getInstruction = await widget.database.query(
       'InstructionList',
       columns: ['instruction', 'question_type'],
@@ -186,66 +181,22 @@ class _ExercisePageState extends State<ExercisePage> {
     context.read<QuestionAnswerModel>().initializeList();
     int count = 0;
 
-    // _userAnswerList.forEach((element) {
-      
-    // });
-    print(getQuestions.length);
-
     for (int i = 0; i < getQuestions.length; i++) {
       List<String> answerList = getQuestions[i]['answer'].split(', ');
-      // debugPrint(answerList.toString());
-      context
-          .read<QuestionAnswerModel>()
-          .addCorrectAnswerToList(count, answerList);
-      
-      // creating a temporary list to be inserted into addUserAnswerToList() function
-      List<String> a = new List();
+      context.read<QuestionAnswerModel>().addCorrectAnswerToList(answerList);
 
       // creating a temporary list to be inserted into _userAnswerList() function
       List<TextEditingController> b = new List();
 
-      // debugPrint(answerList.join(" "));
-
       answerList.forEach((answer) {
-        // print(answer);
-        _controller = new TextEditingController();
-        a.add(_controller.text);
-        b.add(_controller);
+        b.add(new TextEditingController());
       });
+
       _userAnswerList.add(b);
-      context.read<QuestionAnswerModel>().addUserAnswerToList(count, a);
-      _questionList
-          .add(new QuestionAnswer(count, getQuestions[i]['question'], getQuestions[i]['answer']));
+      _questionList.add(new QuestionAnswer(
+          count, getQuestions[i]['question'], getQuestions[i]['answer']));
       count++;
     }
-
-    // getQuestions.forEach((element) {
-      // List<String> answerList = element['answer'].split(',');
-      
-      // context
-      //     .read<QuestionAnswerModel>()
-      //     .addCorrectAnswerToList(count, answerList);
-
-      // creating a temporary list to be inserted into addUserAnswerToList() function
-      // List<String> a = new List();
-
-      // // creating a temporary list to be inserted into _userAnswerList() function
-      // List<TextEditingController> b = new List();
-
-      // // debugPrint(answerList.join(" "));
-
-      // answerList.forEach((answer) {
-      //   // print(answer);
-      //   _controller = new TextEditingController();
-      //   a.add(_controller.text);
-      //   b.add(_controller);
-      // });
-      // _userAnswerList.add(b);
-      // context.read<QuestionAnswerModel>().addUserAnswerToList(count, a);
-      // _questionList
-      //     .add(new QuestionAnswer(count, element['question'], element['answer']));
-      // count++;
-    // });
 
     return 1;
   }
@@ -255,11 +206,6 @@ class _ExercisePageState extends State<ExercisePage> {
     double fontSize = 18.0;
     int count = 0;
     List<String> questionToList = question.question.split(' ');
-    // _answer = new List();
-
-    // questionToList.forEach((element) {
-    //   if (element == "___") _answer.add(new TextEditingController());
-    // });
 
     return Text.rich(
       TextSpan(
@@ -271,12 +217,11 @@ class _ExercisePageState extends State<ExercisePage> {
             if (questionToList[index] == '___' ||
                 questionToList[index] == '___.' ||
                 questionToList[index] == '___,') {
-              // count++;
-
+              
               if (count < controller.length) {
                 count++;
               }
-
+              
               return WidgetSpan(
                 alignment: PlaceholderAlignment.baseline,
                 baseline: TextBaseline.alphabetic,
@@ -287,7 +232,7 @@ class _ExercisePageState extends State<ExercisePage> {
                   child: TextField(
                     // maxLength: 15,
                     // maxLengthEnforced: true,
-                    controller: controller[count-1],
+                    controller: controller[count - 1],
                     decoration:
                         InputDecoration.collapsed(hintText: '___________'),
                     style: TextStyle(fontSize: 18),
@@ -325,6 +270,8 @@ class _ExercisePageState extends State<ExercisePage> {
       ),
     );
 
+
+// an example to create a "fill in the blanks type of question".
     // return Text.rich(
     //   TextSpan(
     //     text: '1. ',
