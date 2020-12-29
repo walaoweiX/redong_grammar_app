@@ -221,7 +221,7 @@ class _ExercisePageState extends State<ExercisePage> {
               if (count < controller.length) {
                 count++;
               }
-              
+
               return WidgetSpan(
                 alignment: PlaceholderAlignment.baseline,
                 baseline: TextBaseline.alphabetic,
@@ -269,35 +269,5 @@ class _ExercisePageState extends State<ExercisePage> {
         ),
       ),
     );
-
-
-// an example to create a "fill in the blanks type of question".
-    // return Text.rich(
-    //   TextSpan(
-    //     text: '1. ',
-    //     style: TextStyle(fontSize: 20),
-    //     children: [
-    //       WidgetSpan(
-    //         alignment: PlaceholderAlignment.baseline,
-    //         baseline: TextBaseline.alphabetic,
-    //         child: ConstrainedBox(
-    //           constraints: BoxConstraints(
-    //             maxWidth: 100,
-    //           ),
-    //           child: TextField(
-    //             // maxLength: 15,
-    //             maxLengthEnforced: true,
-    //             // decoration: InputDecoration(
-    //             //   hintText: '  '
-    //             // ),
-    //             style: TextStyle(fontSize: 20),
-    //             textAlign: TextAlign.center,
-    //           ),
-    //         ),
-    //       ),
-    //       TextSpan(text: ' egg', style: _questionTextStyle),
-    //     ],
-    //   ),
-    // );
   }
 }
