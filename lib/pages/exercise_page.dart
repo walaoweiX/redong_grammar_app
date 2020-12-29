@@ -145,33 +145,9 @@ class _ExercisePageState extends State<ExercisePage> {
                               var questionAnswerModel =
                                   context.read<QuestionAnswerModel>();
                               for (int i = 0; i < _questionList.length; i++) {
-                                questionAnswerModel.questionAnswer =
-                                    _questionList[i];
-                                questionAnswerModel.setAnswerStatus(
-                                    _userAnswerList[i][0].text);
+                                questionAnswerModel.checkAnswers(
+                                    _questionList[i]);
                               }
-
-                              // return showDialog(
-                              //   context: context,
-                              //   builder: (BuildContext context) {
-                              //     return AlertDialog(
-                              //       title: Text('Welcome'),
-                              //       content: Text('GeeksforGeeks'),
-                              //       actions: [
-                              //         FlatButton(
-                              //           textColor: Colors.black,
-                              //           onPressed: () {},
-                              //           child: Text('CANCEL'),
-                              //         ),
-                              //         FlatButton(
-                              //           textColor: Colors.black,
-                              //           onPressed: () {},
-                              //           child: Text('ACCEPT'),
-                              //         ),
-                              //       ],
-                              //     );
-                              //   },
-                              // );
                             },
                           ),
                         ),
@@ -199,46 +175,77 @@ class _ExercisePageState extends State<ExercisePage> {
     _instruction = getInstruction[0].values.elementAt(0);
     _questionType = getInstruction[0].values.elementAt(1);
 
-    var getQuestions = await widget.database.query(
+    List<Map> getQuestions = await widget.database.query(
       'QuestionList',
       columns: ['question', 'answer'],
-      where: 'topic = ? AND exercise = ?',
+      where: '"topic" = ? AND "exercise" = ?',
       whereArgs: ['${widget.title}', '${widget.exerciseNo}'],
     );
     _questionList = new List();
-    _userAnswerList = new List<List<TextEditingController>>();
+    _userAnswerList = new List();
+    context.read<QuestionAnswerModel>().initializeList();
     int count = 0;
 
-    // a counter for total answers ('____') for all questions
-    int answerCount = 0;
+    // _userAnswerList.forEach((element) {
+      
+    // });
+    print(getQuestions.length);
 
-    getQuestions.forEach((element) {
-      List<String> answerList = element['answer'].split(',');
+    for (int i = 0; i < getQuestions.length; i++) {
+      List<String> answerList = getQuestions[i]['answer'].split(', ');
+      // debugPrint(answerList.toString());
       context
           .read<QuestionAnswerModel>()
           .addCorrectAnswerToList(count, answerList);
-
+      
       // creating a temporary list to be inserted into addUserAnswerToList() function
       List<String> a = new List();
 
       // creating a temporary list to be inserted into _userAnswerList() function
       List<TextEditingController> b = new List();
 
+      // debugPrint(answerList.join(" "));
+
       answerList.forEach((answer) {
         // print(answer);
         _controller = new TextEditingController();
-        // a = new List();
         a.add(_controller.text);
-        // b = new List();
         b.add(_controller);
-        // answerCount++;
       });
       _userAnswerList.add(b);
       context.read<QuestionAnswerModel>().addUserAnswerToList(count, a);
       _questionList
-          .add(new QuestionAnswer(element['question'], element['answer']));
+          .add(new QuestionAnswer(count, getQuestions[i]['question'], getQuestions[i]['answer']));
       count++;
-    });
+    }
+
+    // getQuestions.forEach((element) {
+      // List<String> answerList = element['answer'].split(',');
+      
+      // context
+      //     .read<QuestionAnswerModel>()
+      //     .addCorrectAnswerToList(count, answerList);
+
+      // creating a temporary list to be inserted into addUserAnswerToList() function
+      // List<String> a = new List();
+
+      // // creating a temporary list to be inserted into _userAnswerList() function
+      // List<TextEditingController> b = new List();
+
+      // // debugPrint(answerList.join(" "));
+
+      // answerList.forEach((answer) {
+      //   // print(answer);
+      //   _controller = new TextEditingController();
+      //   a.add(_controller.text);
+      //   b.add(_controller);
+      // });
+      // _userAnswerList.add(b);
+      // context.read<QuestionAnswerModel>().addUserAnswerToList(count, a);
+      // _questionList
+      //     .add(new QuestionAnswer(count, element['question'], element['answer']));
+      // count++;
+    // });
 
     return 1;
   }

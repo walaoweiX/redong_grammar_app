@@ -1,8 +1,10 @@
 class QuestionAnswer {
+  int _questionNo;
   String _question;
   String _answer;
-  int _answerStatus = 1; // 1 - not answered, 2 - right answer, 3 - wrong answer
+  int _answerStatus; // 1 - not answered, 2 - right answer, 3 - wrong answer
 
+  get questionNo => _questionNo;
   get question => _question;
   get answer => _answer;
   get answerStatus => _answerStatus;
@@ -11,5 +13,7 @@ class QuestionAnswer {
     _answerStatus =  status;
   }
 
-  QuestionAnswer(this._question, this._answer);
+  QuestionAnswer(this._questionNo, this._question, this._answer) {
+    _answerStatus = 1;
+  }
 }
