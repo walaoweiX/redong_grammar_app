@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:redong_grammar_app/models/QuestionAnswer.dart';
@@ -21,10 +22,12 @@ class _ExercisePageState extends State<ExercisePage> {
   var _textStyle1 =
       TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500);
   var _questionTextStyle = TextStyle(height: 1.5, fontSize: 18);
+  var _defaultFontSize = 18.0;
   String _questionType = "";
   String _instruction = "";
   List<QuestionAnswer> _questionList;
   List<List<TextEditingController>> _userAnswerList;
+  
 
   @override
   void initState() {
@@ -89,14 +92,19 @@ class _ExercisePageState extends State<ExercisePage> {
                                   Expanded(
                                     flex: 6,
                                     child: _questionType == "simple-answer"
-                                        ? _buildSimpleQuestion(
+                                        ? _buildSimpleAnswerQuestion(
                                             index + 1,
                                             _questionList[index],
                                             _userAnswerList[index])
-                                        : Container(
-                                            width: 0,
-                                            height: 0,
-                                          ),
+                                        : _questionType == "underline-answer"
+                                            ? _buildUnderlineAnswerQuestion(
+                                                index + 1,
+                                                _questionList[index],
+                                              )
+                                            : Container(
+                                                width: 0,
+                                                height: 0,
+                                              ),
                                   ),
                                   Expanded(
                                     flex: 1,
@@ -201,23 +209,22 @@ class _ExercisePageState extends State<ExercisePage> {
     return 1;
   }
 
-  Text _buildSimpleQuestion(int questionNo, QuestionAnswer question,
+  Widget _buildSimpleAnswerQuestion(int questionNo, QuestionAnswer question,
       List<TextEditingController> controller) {
-    double fontSize = 18.0;
+    // double fontSize = 18.0;
     int count = 0;
     List<String> questionToList = question.question.split(' ');
 
     return Text.rich(
       TextSpan(
         text: '$questionNo. ',
-        style: TextStyle(fontSize: fontSize),
+        style: TextStyle(fontSize: _defaultFontSize),
         children: List.generate(
           questionToList.length,
           (index) {
             if (questionToList[index] == '___' ||
                 questionToList[index] == '___.' ||
                 questionToList[index] == '___,') {
-              
               if (count < controller.length) {
                 count++;
               }
@@ -266,6 +273,50 @@ class _ExercisePageState extends State<ExercisePage> {
             }
           },
           // growable: false,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUnderlineAnswerQuestion(
+      int questionNo, QuestionAnswer question) {
+    String a =
+        "(hoho, hohos) A herd of (cow, cows) are grazing (hoho, hohos) in the field (hoho, hohos).";
+    RegExp answerChoice = RegExp(r'\(.+?\)');
+    int bCount = 0;
+    int cCount = 0;
+    // print('Has match: ${answerChoice.stringMatch(a)}');
+    List<String> b = question.question.split(answerChoice);
+    List<List<String>> c = [];
+    answerChoice.allMatches(question.question).forEach((element) {
+      c.add(question.question.substring(element.start, element.end).split(','));
+    });
+    // print(c.toString());
+
+    return Text.rich(
+      TextSpan(
+        text: '$questionNo. ',
+        style: TextStyle(fontSize: _defaultFontSize),
+        children: List.generate(
+          b.length,
+          (index) {
+            return TextSpan(
+              text: "${b[index]}",
+              style: _questionTextStyle,
+              children: [
+                TextSpan(
+                  text: index < c.length ? "${c[index][0]}" : "",
+                  recognizer: null,
+                ),
+                TextSpan(
+                  text: index < c.length ? "," : "",
+                ),
+                TextSpan(
+                  text: index < c.length ? "${c[index][1]}" : "",
+                )
+              ],
+            );
+          },
         ),
       ),
     );
