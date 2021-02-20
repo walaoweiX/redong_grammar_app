@@ -3,10 +3,19 @@ import 'package:flutter/foundation.dart';
 import 'package:redong_grammar_app/models/QuestionAnswer.dart';
 
 class QuestionAnswerModel extends ChangeNotifier {
+  List<QuestionAnswer> _questionList;
   List<List<String>> _correctAnswerList;
+
+  get questionList => _questionList;
 
   void initializeList() {
     _correctAnswerList = new List<List<String>>();
+    _questionList = new List();
+    notifyListeners();
+  }
+
+  void addQuestionToList(QuestionAnswer question) {
+    _questionList.add(question);
     notifyListeners();
   }
 
@@ -21,9 +30,6 @@ class QuestionAnswerModel extends ChangeNotifier {
     int questionNo = questionAnswer.questionNo;
     List<String> correctAnswer = _correctAnswerList[questionNo];
     bool isWrong = false;
-
-    // debugPrint(_userAnswerList.toString());
-    // debugPrint(_correctAnswerList.toString());
 
     for (int i = 0; i < correctAnswer.length; i++) {
       if (userAnswer[i].text != correctAnswer[i]) {
